@@ -11717,19 +11717,25 @@ document.getElementById('floatingSave').addEventListener('click', function(e){
 
 document.getElementById('floatingShare').addEventListener('click', async function(){
   const text = formatAllGamesText(lastGames);
-  if(navigator.share){
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const file = new File([blob], 'Jogos Lotofacil.txt', {type:'text/plain;charset=utf-8'});
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
     try{
-      await navigator.share({ title:'Jogos Lotofácil', text });
+      await navigator.share({title:'Jogos Lotofácil', files:[file]});
+      return;
     }catch(err){
-      // usuário cancelou o compartilhamento — nada a fazer
+      if(err && err.name === 'AbortError') return;
     }
-  } else {
-    // navegador sem suporte a compartilhamento nativo: copia como alternativa
-    navigator.clipboard?.writeText(text);
-    const original = this.innerHTML;
-    this.innerHTML = '✅';
-    setTimeout(()=>{ this.innerHTML = original; }, 1200);
   }
+  // Alternativa: baixa o TXT completo, evitando corte de texto em compartilhamentos grandes.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Jogos Lotofacil.txt';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
 });
 
 document.getElementById('floatingSalvarNome').addEventListener('click', function(){
@@ -11817,13 +11823,11 @@ function formatGameRows(g){
   return rows;
 }
 
-// monta o texto de todos os jogos, com prefixo numerado e continuação alinhada em fileiras de 10
+// Formato mobile: sem numeração na frente; cada jogo completo em uma linha.
 function formatAllGamesText(games){
-  return games.map((g,i)=>{
-    const prefix = `${(i+1).toString().padStart(4,'0')}. `;
-    const indent = ' '.repeat(prefix.length);
-    return prefix + formatGameRows(g).join('\n'+indent);
-  }).join('\n');
+  return games.map(g =>
+    g.map(x=>x.toString().padStart(2,'0')).join(' ')
+  ).join('\n');
 }
 
 // filterSelect foi removido da tela; sem ele, sempre usa "sem filtro" (não altera a garantia)
