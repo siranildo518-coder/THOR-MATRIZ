@@ -2957,7 +2957,11 @@ document.addEventListener('selectstart', e=>{
 @media(max-width:360px){#overlayListaResultados{padding-left:66px!important}#homeSideNav{width:60px}.home-feature-grid{grid-template-columns:1fr}.home-feature-card{min-height:44px}}
 </style>
 
-</head>
+<style id="matrizConcAnteriorLayoutFix">
+#gerarTopoAcoes{display:grid!important;grid-template-columns:1fr .85fr 1.25fr!important;gap:8px!important;align-items:stretch!important}
+#gerarTopoAcoes>#gerarCopiarBtn,#gerarTopoAcoes>#gerarTopoSelect,#gerarTopoAcoes>#gerarConcAnteriorBtn{width:100%!important;height:42px!important;margin:0!important;box-sizing:border-box!important}
+#gerarTopoAcoes~button[id*="copiar" i],#gerarTopoAcoes~.btn-copiar{display:none!important}
+</style></head>
 <body>
 <div class="app">
 
@@ -8828,8 +8832,9 @@ async function gerarDuplas(){
     if(gerarConcAnteriorAtivo){
       const ult = await fetchConcursoLoteria(g);
       const anteriorSet = new Set((ult && ult.dezenas || []).map(d=>parseInt(d,10)));
-      // Com o filtro ativo, calcula/rankeia somente as dezenas que saíram no concurso anterior:
-      // são justamente as que podem repetir ou falhar (não repetir) no próximo.
+      // Modo Conc. Anterior: mostra apenas dezenas do último resultado.
+      // l.pct já é P(não repetir no concurso seguinte | dezena saiu no concurso anterior),
+      // calculada pelos pares históricos dentro da base escolhida.
       disponiveis = disponiveis.filter(l=>anteriorSet.has(l.n));
     }
     disponiveis.sort((a,b)=> b.pct - a.pct);
@@ -8940,6 +8945,7 @@ async function atualizarTopoPreview(){
       </div>`).join('');
 
     preview.innerHTML = `
+      ${gerarConcAnteriorAtivo ? '<div style="margin:0 0 8px;padding:7px 9px;border-radius:8px;background:#DCFCE7;color:#166534;font-weight:800;font-size:11px;">CONC. ANTERIOR ATIVO — calculando somente as dezenas que saíram no último concurso</div>' : ''}
       <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">Dezenas selecionadas com esse filtro (em ordem sequencial — azul mais escuro = maior chance de falhar):</div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;margin-bottom:12px;">${bolas}</div>
       <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">Chance de falha — da maior para a menor:</div>
@@ -11169,6 +11175,16 @@ if(gerarCopiarBtnEl) gerarCopiarBtnEl.addEventListener('click', async function()
   const antigo=this.textContent; this.textContent='COPIADO'; setTimeout(()=>{this.textContent=antigo;},900);
 });
 aplicarEstadoConcAnterior();
+(function limparCopiarDuplicado(){
+  const area=document.getElementById('gerarTopoAcoes');
+  if(!area)return;
+  document.querySelectorAll('button').forEach(b=>{
+    if(b!==document.getElementById('gerarCopiarBtn') && (b.textContent||'').trim().toUpperCase()==='COPIAR'){
+      const r=b.getBoundingClientRect(), a=area.getBoundingClientRect();
+      if(Math.abs(r.top-a.top)<80 && r.left>=a.left-20 && r.right<=a.right+20) b.remove();
+    }
+  });
+})();
 document.getElementById('subtabFalha').addEventListener('click', ()=>{
   ativarSubtabTendencia('subtabFalha');
   if(!falhaCarregouUmaVez) carregarFalha(tendGameAtual);
