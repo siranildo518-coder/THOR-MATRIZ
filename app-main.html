@@ -8952,20 +8952,6 @@ async function atualizarTopoPreview(){
 }
 
 
-// Ações da linha COPIAR / quantidade / Conc. Anterior
-document.getElementById('gerarConcAnteriorBtn')?.addEventListener('click', async ()=>{
-  gerarConcAnteriorAtivo = !gerarConcAnteriorAtivo;
-  aplicarEstadoConcAnterior();
-  await atualizarTopoPreview();
-});
-document.getElementById('gerarCopiarBtn')?.addEventListener('click', async ()=>{
-  const txt=(gerarTopoAtual||[]).slice().sort((a,b)=>a.n-b.n).map(x=>String(x.n).padStart(2,'0')).join(' ');
-  if(!txt)return;
-  try{ await navigator.clipboard.writeText(txt); }catch(e){}
-  const b=document.getElementById('gerarCopiarBtn'); if(b){const t=b.textContent;b.textContent='COPIADO';setTimeout(()=>b.textContent=t,900);}
-});
-aplicarEstadoConcAnterior();
-
 function renderGerarDuplas(itens, top, info){
   const cont = document.getElementById('gerarConteudo');
   const topo = itens[0];
@@ -11168,6 +11154,21 @@ if(gerarQtdAtualizarBtnEl) gerarQtdAtualizarBtnEl.addEventListener('click', asyn
 });
 const gerarTopoSelectEl = document.getElementById('gerarTopoSelect');
 if(gerarTopoSelectEl) gerarTopoSelectEl.addEventListener('change', atualizarTopoPreview);
+const gerarConcAnteriorBtnEl = document.getElementById('gerarConcAnteriorBtn');
+if(gerarConcAnteriorBtnEl) gerarConcAnteriorBtnEl.addEventListener('click', async function(){
+  gerarConcAnteriorAtivo = !gerarConcAnteriorAtivo;
+  aplicarEstadoConcAnterior();
+  this.disabled = true;
+  try{ await atualizarTopoPreview(); } finally { this.disabled = false; }
+});
+const gerarCopiarBtnEl = document.getElementById('gerarCopiarBtn');
+if(gerarCopiarBtnEl) gerarCopiarBtnEl.addEventListener('click', async function(){
+  const txt=(gerarTopoAtual||[]).slice().sort((a,b)=>a.n-b.n).map(x=>String(x.n).padStart(2,'0')).join(' ');
+  if(!txt) return;
+  try{ await navigator.clipboard.writeText(txt); }catch(e){}
+  const antigo=this.textContent; this.textContent='COPIADO'; setTimeout(()=>{this.textContent=antigo;},900);
+});
+aplicarEstadoConcAnterior();
 document.getElementById('subtabFalha').addEventListener('click', ()=>{
   ativarSubtabTendencia('subtabFalha');
   if(!falhaCarregouUmaVez) carregarFalha(tendGameAtual);
