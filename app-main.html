@@ -11717,25 +11717,19 @@ document.getElementById('floatingSave').addEventListener('click', function(e){
 
 document.getElementById('floatingShare').addEventListener('click', async function(){
   const text = formatAllGamesText(lastGames);
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const file = new File([blob], 'Jogos Lotofacil.txt', {type:'text/plain;charset=utf-8'});
-  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-    try{
+  const file = new File([text], 'Jogos Lotofacil.txt', {type:'text/plain'});
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({title:'Jogos Lotofácil', files:[file]});
-      return;
-    }catch(err){
-      if(err && err.name === 'AbortError') return;
+    } else if(navigator.share){
+      await navigator.share({title:'Jogos Lotofácil', text:text});
+    } else {
+      await navigator.clipboard?.writeText(text);
+      alert('Compartilhamento não disponível neste navegador. Os jogos foram copiados.');
     }
+  }catch(err){
+    if(!err || err.name !== 'AbortError') console.error('Falha ao compartilhar jogos:', err);
   }
-  // Alternativa: baixa o TXT completo, evitando corte de texto em compartilhamentos grandes.
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Jogos Lotofacil.txt';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 4000);
 });
 
 document.getElementById('floatingSalvarNome').addEventListener('click', function(){
