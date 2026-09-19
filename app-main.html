@@ -14859,6 +14859,17 @@ document.addEventListener('click', (e)=>{
 document.addEventListener('click',function(e){const b=e.target.closest('[data-home-target]');if(!b)return;const t=document.getElementById(b.dataset.homeTarget);if(t)t.click();});
 document.getElementById('homeSideMenu')?.addEventListener('click',()=>document.getElementById('btnMenu')?.click());
 </script>
+<script id="matrizEscolhaPraMimFix">
+document.addEventListener('click',function(e){
+  var el=e.target.closest('button,a,[role="button"]');
+  if(!el)return;
+  var txt=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+  if(txt.includes('escolha pra mim') || txt.includes('escolha para mim')){
+    e.preventDefault(); e.stopPropagation();
+    location.href='./gerador.html?v=matriz-escolha-20260919-1';
+  }
+},true);
+</script>
 </body>
 </html>
 
