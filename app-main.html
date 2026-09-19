@@ -8916,7 +8916,7 @@ async function atualizarTopoPreview(){
         <div style="flex:1;height:4px;border-radius:3px;background:var(--ball-off);overflow:hidden;">
           <div style="height:100%;border-radius:3px;width:${pctExibicao(l.pct)}%;background:linear-gradient(90deg,var(--magenta),var(--violet));"></div>
         </div>
-        <span style="font-size:11px;font-weight:700;color:var(--violet-deep);width:30px;flex:none;text-align:right;">${pctExibicao(l.pct)}%</span>
+        <span title="${l.falhou} falhas em ${l.apareceu} ocorrências" style="font-size:11px;font-weight:700;color:var(--violet-deep);width:30px;flex:none;text-align:right;">${pctExibicao(l.pct)}%</span>
       </div>`).join('');
 
     preview.innerHTML = `
@@ -9213,10 +9213,14 @@ async function calcularFalhaDezenas(numerosAlvo, qtd, gameParam){
   });
   numerosAlvo.forEach(n=>{ if(atraso[n]===null) atraso[n] = concursos.length; });
 
+  // Percentual histórico observado: entre as vezes em que a dezena saiu,
+  // quantas vezes ela NÃO apareceu no concurso imediatamente seguinte.
+  // Não aplica peso, atraso, tendência ou multiplicador artificial.
   const linhas = numerosAlvo.map(n=>{
     const base = apareceu[n];
-    const pct = base > 0 ? (1 - repetiu[n]/base) * 100 : null;
-    return {n, repetiu: repetiu[n], apareceu: base, pct, atraso: atraso[n]};
+    const falhou = Math.max(0, base - repetiu[n]);
+    const pct = base > 0 ? (falhou / base) * 100 : null;
+    return {n, repetiu: repetiu[n], falhou, apareceu: base, pct, atraso: atraso[n]};
   });
 
   return {linhas, pares, numeroUltimo};
